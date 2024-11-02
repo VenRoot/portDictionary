@@ -5,21 +5,23 @@ class ArgsParser {
     constructor(args: string[]) {
         if(args.length === 0) throw new Error("No arguments provided");
         this.args = args;
-        this.filteredArgs = args.filter(arg => arg !== '-O' && arg !== '--overwrite');
+        this.filteredArgs = args.filter(arg => arg !== '-O' && arg !== '--overwrite').map(arg => arg.toLowerCase());
     }
 
     public hasOverwrite(): boolean {
         return this.args.includes('-O') || this.args.includes('--overwrite');
     }
 
-    public getType(): "get" | "set" | "delete" {
+    public getType(): "get" | "getall" | "set" | "delete" {
         if(this.filteredArgs[0] === "get") return "get";
+        if(this.filteredArgs[0] === "getall") return "getall";
         if(this.filteredArgs[0] === "set") return "set";
         if(this.filteredArgs[0] === "delete") return "delete";
         throw new Error("Invalid argument");
     }
 
     public getPort(): number {
+        if(this.getType() === "getall") return 0;
         const port = this.filteredArgs[1];
         if(isNaN(Number(port))) throw new Error("Invalid port");
         return Number(port);
@@ -31,6 +33,8 @@ class ArgsParser {
 
     public checkFormat(): void {
         const type = this.getType();
+        if(type === "getall") return;
+        
         const port = this.filteredArgs[1];
         
         if(port === undefined) throw new Error("Invalid argument");

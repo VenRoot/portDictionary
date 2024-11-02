@@ -2,14 +2,14 @@ import ArgsParser from './argsParser.ts';
 import Config from './config.ts';
 import printHelp from "./help.ts";
 
-const args = Deno.args;
+const args = Deno.args.map(arg => arg.toLowerCase());
 if (args.includes('-h') || args.includes('--help')) {
   printHelp();
   Deno.exit(0);
 }
 
 const filteredArgs = args.filter(arg => arg !== '-O' && arg !== '--overwrite');
-if(filteredArgs.length === 0 || !["get", "set", "delete"].includes(filteredArgs[0])) {
+if(filteredArgs.length === 0 || !["get", "getall", "set", "delete"].includes(filteredArgs[0])) {
     printHelp();
     Deno.exit(1);
 }
@@ -19,6 +19,20 @@ const config = new Config();
 const argsParser = new ArgsParser(args);
 
 const type = argsParser.getType();
+
+if(type === "getall") {
+    const entries = config.readConfig();
+    if(entries.length === 0) {
+        console.log("No port entries found");
+        Deno.exit(0);
+    }
+    
+    entries.forEach(entry => {
+        console.log(`Port: ${entry.port} | Description: ${entry.description}`);
+    });
+    Deno.exit(0);
+}
+
 const port = argsParser.getPort();
 const description = argsParser.getDescription();
 const configEntry = config.getEntry(port);
@@ -35,8 +49,6 @@ if(type === "get") {
 }
 
 if(type === "set") {
-  console.log(`Port: ${port} | Description: ${description}`);
-
   if(configEntry) {
     if(isOverwrite) {
       config.updateEntry(port, description);
