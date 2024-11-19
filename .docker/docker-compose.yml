@@ -1,0 +1,14 @@
+version: '3.9'
+services:
+  deno-compiler:
+    build:
+      context: ..
+      dockerfile: .docker/Dockerfile
+      args:
+        - UID=${UID:-1000}
+        - GID=${GID:-1000}
+    volumes:
+      - ../src:/app/src:ro
+      - ../build:/app/build
+    user: "${UID:-1000}:${GID:-1000}"
+    entrypoint: ["deno", "compile", "-A", "--output", "/app/build/portDictionary", "/app/src/main.ts"]
